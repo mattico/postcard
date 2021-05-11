@@ -18,7 +18,9 @@ where
 }
 
 /// Deserialize a message of type `T` from a cobs-encoded byte slice. The
-/// unused portion (if any) of the byte slice is not returned.
+/// unused portion (if any) of the byte slice is not returned. The COBS decoding
+/// is performed in-place which requires additional space and will write past the
+/// end of the message.
 pub fn from_bytes_cobs<'a, T>(s: &'a mut [u8]) -> Result<T>
 where
     T: Deserialize<'a>,
@@ -28,7 +30,9 @@ where
 }
 
 /// Deserialize a message of type `T` from a cobs-encoded byte slice. The
-/// unused portion (if any) of the byte slice is returned for further usage
+/// unused portion (if any) of the byte slice is returned for further usage. 
+/// The COBS decoding is performed in-place which requires additional space
+/// and will write past the end of the message.
 pub fn take_from_bytes_cobs<'a, T>(s: &'a mut [u8]) -> Result<(T, &'a mut [u8])>
 where
     T: Deserialize<'a>,

@@ -55,7 +55,7 @@ where
 #[cfg(test)]
 mod test_heapless {
     use super::*;
-    use crate::ser::to_vec;
+    use crate::ser::{to_vec, to_vec_cobs};
     use core::fmt::Write;
     use core::ops::Deref;
     use heapless::{consts::*, String, Vec, FnvIndexMap};
@@ -463,5 +463,28 @@ mod test_heapless {
         let out = from_bytes_cobs::<RefStruct>(&mut encode_buf[..sz]).unwrap();
 
         assert_eq!(input, out);
+    }
+
+    #[test]
+    fn take_from_bytes_cobs_test() {
+        #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
+        enum Enum {
+            E1,
+            E2,
+        }
+
+        let out_1: Vec<u8, U3> = to_vec_cobs(&Enum::E1).unwrap();
+        let out_2: Vec<u8, U3> = to_vec_cobs(&Enum::E2).unwrap();
+        let mut out: Vec<u8, U6> = heapless::Vec::new();
+        out.extend_from_slice(&out_1).unwrap();
+        out.extend_from_slice(&out_2).unwrap();
+        assert_eq!(out, [1, 1, 0, 2, 1, 0]);
+
+        let (msg1, remainder) = take_from_bytes_cobs::<Enum>(&mut out).unwrap();
+        assert_eq!(msg1, Enum::E1);
+        assert_eq!(remainder, [0, 2, 1, 0]);
+        let (msg2, remainder) = take_from_bytes_cobs::<Enum>(&mut remainder[1..]).unwrap();
+        assert_eq!(msg2, Enum::E2);
+        assert_eq!(remainder, [0]);
     }
 }
